@@ -1,0 +1,263 @@
+---
+title: "STA 108 HW3 - J. Jiang"
+author: "Dylan M Ang"
+date: "2/1/2022"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(knitr)
+```
+
+HW 3: 2.22, 2.25, 2.29, 2.42, 2.51.
+
+## 2.22
+
+\begin{equation}
+  R^2 = \frac{SSR}{SSTO} = 1 - \frac{SSE}{SSTO}, \quad 0 \leq R^2 \leq 1
+\end{equation}
+
+$R^2$ is a measure of the fit, when it equals zero, that indicates a weak correlation between terms. 
+
+Yes, it is possible that $R^2$ for the entire data set would be greater than 0, even if the first ten results are zero.
+In order for this to be the case though, the other 20 experiments would need to have high enough values for $R^2$ to bring the total over 0.
+
+It wouldn't be possible for the first ten values of $R^2$ to be greater than 0, but the total be 0.
+There are already values greater than 0, indicating a relation, so there isn't any way to go back to 0.
+
+\pagebreak
+
+## 2.25 Airplane Breakage
+
+### a
+
+```{r} 
+break_data = read.table("./airfreight+breakage.txt")
+Y = break_data$V1
+X = break_data$V2
+n = length(X)
+fit = lm(Y ~ X)
+kable(anova(fit))
+```
+The degrees of freedom and Sum of Squares columns are additive, since $SSTO = SSE + SSR$, and $n-2 + 1 = n - 1$.
+
+### b
+
+Null Hypothesis $H_0$: $\beta_1 = 0$
+
+Alternate Hypothesis $H_1$: $\beta_1 \ne 0$
+
+The distribution of F under the null hypothesis is $F_{1,n-2}$. So we reject $H_0$ when $F > F(1-\alpha, 1, n-2)$
+
+```{r}
+Y_hat = fit$fitted.values
+SSTO = sum( (Y - mean(Y) )^2 )
+SSE = sum((Y - Y_hat)^2)
+SSR = sum((Y_hat - mean(Y))^2)
+MSR = SSR/1 # df = 1
+MSE = SSE/(n - 2)
+F_stat = MSR/MSE
+pval =pf(F_stat, 1, n - 2, lower.tail = F)
+res = data.frame(Source = c("Regression", "Error", "Total"), 
+                 df = c(1, n-2, n-1),
+                 SS = c(SSR, SSE, SSTO),
+                 MS = c(MSR, MSE, NA),
+                 F_val = c(F_stat, NA, NA),
+                 p_val = c(pval, NA, NA)
+                 )
+kable(res)
+```
+
+The $p < \alpha$ for $\alpha = 0.05$, therefore we reject the null hypothesis. 
+Therefore, We can say with $95\%$ confidence that there is a linear association between the number of carton transfers and the number of broken ampules.
+
+### c
+
+\begin{equation}
+  t_{\hat\beta_1} = \frac{\hat\beta_1 - 1}{SE(\hat\beta_1)}
+\end{equation}
+
+```{r echo=FALSE}
+sprintf("t = %f", summary(fit)$coefficients[2,3])
+```
+
+So, $t^2 = 8.528^2 = 72.72727 = F$
+
+### d 
+
+$R^2 = \frac{SSR}{SSTO}$
+
+```{r echo=FALSE}
+sprintf("R^2 = %f", summary(fit)$r.squared)
+sprintf("r = %f", cor(X,Y))
+```
+
+Interpretation: 90% of the variation in Y is accounted for by X.
+
+\pagebreak
+
+## 2.29
+
+### a Muscle Mass
+
+```{r}
+mass = read.table('./muscle+mass.txt')
+Y = mass$V1
+X = mass$V2
+
+mass.lm = lm(Y ~ X)
+
+b0hat = mass.lm$coefficients[1]
+b1hat = mass.lm$coefficients[2]
+
+yhat = b0hat + b1hat * X
+
+mass.res= Y - yhat
+plot(X, mass.res, 
+     xlab = "Age", ylab = "Yi - Y hat",
+     main = "Muscle Mass Residual",
+    )
+
+mass.err = yhat - mean(Y)
+plot(X, mass.err, 
+     xlab = "Age", ylab = "Y hat - Y bar",
+     main = "Muscle Mass Error",
+     )
+```
+
+From the graphs, SSE contributes less to SSTO, and SSR is a larger component. This implies that $R^2$ is closer to 1, since SSR is a larger portion of SSTO, and $R^2 = \frac{SSR}{SSTO}$.
+
+### b
+
+```{r}
+kable(anova(mass.lm))
+```
+
+### c
+
+Null Hypothesis $H_0: \beta_1 = 0$
+
+Alternate Hypothesis $H_1: \beta_1 \ne 0$
+
+The distribution of F under the null hypothesis is $F_{1,n-2}$. So we reject $H_0$ when $F > F(1-\alpha, 1, n-2)$
+
+```{r}
+Y_hat = mass.lm$fitted.values
+SSTO = sum( (Y - mean(Y) )^2 )
+SSE = sum((Y - yhat)^2)
+SSR = sum((Y_hat - mean(Y))^2)
+MSR = SSR/1 # df = 1
+MSE = SSE/(n - 2)
+F_stat = MSR/MSE
+pval =pf(F_stat, 1, n - 2, lower.tail = F)
+res = data.frame(Source = c("Regression", "Error", "Total"), 
+                 df = c(1, n-2, n-1),
+                 SS = c(SSR, SSE, SSTO),
+                 MS = c(MSR, MSE, NA),
+                 F_val = c(F_stat, NA, NA),
+                 p_val = c(pval, NA, NA)
+                 )
+kable(res)
+```
+
+$p < \alpha$ for $\alpha = 0.05$, therefore we can reject the $H_0$. Therefore, we can say that $\beta_1 \ne 0$.
+
+### d
+
+$75\%$ of the variation in Y is explained by X, therefore $25\%$ of the variation in muscle mass is not accounted for by age. 
+$75\%$ is a high level of correlation.
+
+### e
+
+```{r echo=FALSE}
+sprintf("R^2 = %f", summary(mass.lm)$r.squared)
+sprintf("r = %f", cor(X,Y))
+```
+ 
+\pagebreak
+
+## 2.42 Property Assessments
+
+### a
+
+```{r}
+property = read.table('./property+assessments.txt')
+Y1 = property$V1
+Y2 = property$V2
+n = length(Y1)
+plot(Y1, Y2, 
+     xlab = "Assessed Value",
+     ylab = "Sales Value",
+     main = "Sales vs. Assessed Value",
+     pch=19
+     )
+```
+
+The two values are closely correlated, therefore a bivariate normal distribution appears to be appropriate.
+
+### b
+
+```{r}
+r12 = cor(Y1, Y2)
+r12
+```
+
+$r_{1 2}$ is the Pearson correlation coefficient, it estimates $\rho$, the population correlation coefficient.
+
+### c
+
+Null Hypothesis $H_0: \beta_{12} = 0$
+
+Alternate Hypothesis $H_1: \beta_{12} \ne 0$
+
+\begin{equation}
+  t^* = \frac{r_{12} \sqrt{n-2}}{\sqrt{1-r_{12}^2}}
+\end{equation}
+
+If $|t^*| \leq t(1 - \alpha /2\; n-2)$, conclude $H_0$
+
+If $|t^*| > t(1 - \alpha /2\; n-2)$, conclude $H_1$
+
+```{r}
+tstar = (r12 * sqrt(n - 2))/(sqrt(1 - r12^2))
+crit = qt(p = 0.01/2, df = n - 2, lower.tail=FALSE)
+tstar > crit
+```
+
+$t^* >$ our critical t-value, so we can reject $H_0$. Therefore, we can say that $\beta_{12} \ne 0$, and $\beta_{21} \ne 0$ since they are equivalent.
+
+### d
+
+No, it is not appropriate to use equation 2.87 for $\rho$.
+
+\pagebreak
+
+## 2.51
+
+Show that $E[b_0]= \beta_0$.
+
+As defined in 2.21, 
+
+\begin{align}
+  b_0 & = \bar Y - b_1 \bar X \\
+  E[b_0] & = E[\bar Y - b_1 \bar X] \\
+  & = E[\bar Y] - E[b_1 \bar X] \\
+  & = E[\frac{1}{n} \Sigma_{i=1}^{n} Y_i] - \bar X E[b_1] \\
+  & = \frac{1}{n} \Sigma_{i=1}^{n} E[Y_i] - \bar X \beta_1 \\
+  & = \frac{1}{n} \Sigma_{i=1}^{n} E[\beta_0 + \beta_1 x_i] - \bar X \beta_1, \quad E(\epsilon_i) = 0 \\
+  & = \frac{1}{n} (\Sigma_{i=1}^{n} \beta_0 + \Sigma_{i=1}^{n}\beta_1 x_i] - \bar X \beta_1 \\
+  & = \frac{1}{n} (n\beta_0 + \beta_1 \Sigma_{i=1}^{n} x_i) - \bar X \beta_1 \\
+  & = \beta_0 + \beta_1 \frac{\Sigma_{i=1}^{n} x_i}{n} - \bar X \beta_1 \\
+  & = \beta_0, \quad \text{definition of } \bar X \\
+  E[b_0] & = \beta_0 \quad \square
+\end{align}
+
+
+
+
+
+
+
