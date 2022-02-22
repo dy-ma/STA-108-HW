@@ -1,0 +1,4 @@
+"0","x <- c(16, 16, 16, 24, 24, 24, 32, 32,32, 40, 40, 40)"
+"0","y <- c(199, 205, 196, 215, 213, 210, 233, 235, 232, 248, 253, 246)"
+"0","hardness <- lm(y ~ x)"
+"0","plot(x, y, main = ""Hardness ~ Time"", xlab = ""Time"", ylab = ""Hardness"", abline(hardness, col=""red""))"

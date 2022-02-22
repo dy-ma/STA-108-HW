@@ -1,0 +1,3 @@
+"0","knitr::opts_chunk$set(echo = TRUE,"
+"0","                      tidy.opts = list(width.cutoff = 60),"
+"0","                      tidy = TRUE)"
